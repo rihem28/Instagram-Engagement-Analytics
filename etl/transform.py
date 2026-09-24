@@ -168,13 +168,15 @@ def transform_data(df):
 
     return df, instagram_fact
 
+
 # ----------------- Engagement Driver Analysis -----------------
+  # ---- Correlation Check: category/channel vs engagement_rate ----
+    # content_category and traffic_source are categorical, so one-hot encode
+    # them first — a plain Pearson r only makes sense on numeric columns.
+
 def analyze_data(df):
     print("\n--- Running Engagement Driver Analysis ---")
  
-    # ---- Correlation Check: category/channel vs engagement_rate ----
-    # content_category and traffic_source are categorical, so one-hot encode
-    # them first — a plain Pearson r only makes sense on numeric columns.
     dummies = pd.get_dummies(df[["content_category", "traffic_source"]])
     corr = dummies.corrwith(df["engagement_rate"]).sort_values(key=abs, ascending=False)
     corr.to_csv(f"{processed_dir}/engagement_correlation_report.csv", header=["correlation"])
@@ -185,6 +187,7 @@ def analyze_data(df):
     # Compares each category's average engagement with vs. without its
     # outlier posts, to check whether "top performer" categories are real
     # or driven by a handful of viral outliers.
+    
     category_check = df.groupby("content_category").apply(
         lambda g: pd.Series({
             "mean_er_all": g["engagement_rate"].mean(),
@@ -211,6 +214,7 @@ def validate_data(df, fact):
 def main():
     df_clean = clean_data()
     df_kpi, fact = transform_data(df_clean)
+    analyze_data(df_kpi)
     validate_data(df_kpi, fact)
 
 if __name__ == "__main__":
